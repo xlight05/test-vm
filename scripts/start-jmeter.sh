@@ -187,4 +187,4 @@ done
 # Set cmdrunner version in JMeterPluginsCMD.sh
 sed -i "s/cmdrunner-.*\.jar/$cmdrunner_jar/g" $extracted_dirname/bin/JMeterPluginsCMD.sh
 
-/home/azureuser/test-vm/apache-jmeter-4.0/bin/jmeter -n -t original.jmx -l results.jtl
+/buildArtifacts/apache-jmeter-4.0/bin/jmeter -n -t /buildArtifacts/scripts/original.jmx -l results.jtl

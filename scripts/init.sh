@@ -19,7 +19,6 @@
 
 sudo apt-get update
 sudo apt-get install openjdk-8-jdk -y
-git clone https://github.com/xlight05/test-vm
-echo "20.81.16.214 perf.test.com" >> /etc/hosts #change ip to params
-cd test-vm
-./start-jmeter.sh
+echo '20.62.233.131 perf.test.com' | sudo tee -a /etc/hosts
+cd /buildArtifacts/scripts
+sudo ./start-jmeter.sh -i /buildArtifacts -d

@@ -12,22 +12,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - name: Create Workflow Artifacts
-      run: |
-        echo "starting ls"
-        ls
-        echo "end ls"
-        echo $GITHUB_WORKSPACE
-        echo "pwd"
-        pwd
-        echo "before cd"
-        cd $GITHUB_WORKSPACE
-        mkdir workflow-artifacts
-        echo "after cd creating dir"
-        ls
-        echo "final"
-        echo "echo Installing World... " > $GITHUB_WORKSPACE/workflow-artifacts/install-world.sh
-        ls
     - name: Login via Az module
       uses: azure/login@v1
       with:
@@ -42,11 +26,12 @@ jobs:
         source-os-type: 'linux'
         source-image-type: 'PlatformImage'
         source-image: Canonical:UbuntuServer:18.04-LTS:latest 
-        customizer-source: ${{ GITHUB.WORKSPACE }}/workflow-artifacts
+        dist-image-tags: 'number:${{ GITHUB.RUN_NUMBER }}'
+        customizer-source: ${{ GITHUB.WORKSPACE }}/scripts
         customizer-script: |
           sudo mkdir /buildArtifacts
-          sudo cp -r /tmp/workflow-artifacts/ /buildArtifacts/
-          sh /buildArtifacts/workflow-artifacts/install-world.sh
+          sudo cp -r /tmp/scripts/ /buildArtifacts/
+          sh /buildArtifacts/scripts/init.sh
     - name: CREATE VM
       uses: azure/CLI@v1
       with:
