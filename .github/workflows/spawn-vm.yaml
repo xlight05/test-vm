@@ -22,7 +22,7 @@ jobs:
       with:        
         resource-group-name: '${{ secrets.CLUSTER_RESOURCE_GROUP }}'
         location: 'eastus'
-        managed-identity: 'newImageBuilderIdentity'
+        managed-identity: 'myImageBuilderIdentity'
         source-os-type: 'linux'
         source-image-type: 'PlatformImage'
         source-image: Canonical:UbuntuServer:18.04-LTS:latest 
