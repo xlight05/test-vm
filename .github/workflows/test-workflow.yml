@@ -19,5 +19,5 @@ jobs:
       with:
         azcliversion: 2.0.72
         inlineScript: |
-          az vm create --resource-group "${{ secrets.CLUSTER_RESOURCE_GROUP }}"  --name "test-vm-${{ GITHUB.RUN_NUMBER }}"  --admin-username "${{ secrets.VM_USER }}" --admin-password "${{ secrets.VM_PWD }}" --location  eastus \
+          az vm create --resource-group "${{ secrets.CLUSTER_RESOURCE_GROUP }}"  --name "test-vm-${TEST_NAME}-${{ GITHUB.RUN_NUMBER }}"  --admin-username "${{ secrets.VM_USER }}" --admin-password "${{ secrets.VM_PWD }}" --location  eastus \
           --image "Canonical:UbuntuServer:18.04-LTS:latest"   
