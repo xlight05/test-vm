@@ -27,6 +27,7 @@ jobs:
       run: |
         echo "${{ steps.write.outputs.old-image-id }}"
     - name: Cleaning up existing VM Image
+      id: ohh
       uses: azure/CLI@v1
       with:
         azcliversion: 2.25.0
@@ -35,7 +36,7 @@ jobs:
 
     - name: Print again
       run: |
-        echo "${{ steps.write.outputs.res-group }}"
+        echo "${{ steps.ohh.outputs.res-group }}"
     # - name: Create local changes
     #   run: |
     #     echo "mi_12345" | sed -e "s/^"mi_"//" > image.txt
