@@ -17,7 +17,7 @@ jobs:
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
     - name: Create local changes
       run: |
-        echo ${$(echo /subscriptions/5295c144-c89d-4ee8-bf55-8f81cf250fda/resourceGroups/providers/Microsoft.Compute/images/mi_1624376415297)##*/} | sed -e "s/^"mi_"//" > test.txt
+        echo ${$(echo /subscriptions/5295c144-c89d-4ee8-bf55-8f81cf250fda/resourceGroups/providers/Microsoft.Compute/images/mi_1624376415297)##*/}|sed -e "s/^"mi_"//"
     - name: Write values to outputs
       id: write
       run: |
@@ -54,6 +54,7 @@ jobs:
     #     echo ${$(echo ${{ steps.imageBuilder.outputs.custom-image-uri }})##*/} | sed -e "s/^"mi_"//" > image.txt
     - name: Commit files
       run: |
+        git add .
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
         git config --local user.name "github-actions[bot]"
         git commit -m "Add changes" -a
