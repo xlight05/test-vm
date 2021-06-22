@@ -10,6 +10,11 @@ jobs:
       TEST_NAME: "h1-h1-passthrough"
       TEST_ROOT: "tests"
     steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
+        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
     - name: Login via Az module
       uses: azure/login@v1
       with:
@@ -18,10 +23,32 @@ jobs:
       id: write
       run: |
         echo "::set-output name=vm-name::bal-perf-vm-`echo ${TEST_NAME} | tr '_' ' '`-${{ GITHUB.RUN_NUMBER }}"
-    - name: Test AZ CLI Command
-      uses: azure/CLI@v1
+        echo "::set-output name=old-image-id::cat image.txt"
+    # - name: Cleaning up existing
+    #   uses: azure/CLI@v1
+    #   with:
+    #     azcliversion: 2.0.72
+    #     inlineScript: |
+    #       az group delete --name $(az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv) -y
+    #       az image builder delete --name imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} --resource-group ballerina-performance
+    #       az image delete --name mi_${{ steps.write.outputs.old-image-id }} --resource-group ballerina-performance
+    - name: Create local changes
+      run: |
+        echo "mi_12345" | sed -e "s/^"mi_"//" > image.txt
+    - name: Commit files
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git commit -m "Add changes" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
       with:
-        azcliversion: 2.0.72
-        inlineScript: |
-          az vm create --resource-group "${{ secrets.CLUSTER_RESOURCE_GROUP }}"  --name "${{ steps.write.outputs.vm-name }}"  --admin-username "${{ secrets.VM_USER }}" --admin-password "${{ secrets.VM_PWD }}" --location  eastus \
-          --image "Canonical:UbuntuServer:18.04-LTS:latest"   
+        github_token: ${{ secrets.BALLERINA_BOT_TOKEN }}
+        branch: update-vm-image
+    # - name: Test AZ CLI Command
+    #   uses: azure/CLI@v1
+    #   with:
+    #     azcliversion: 2.0.72
+    #     inlineScript: |
+    #       az vm create --resource-group "${{ secrets.CLUSTER_RESOURCE_GROUP }}"  --name "${{ steps.write.outputs.vm-name }}"  --admin-username "${{ secrets.VM_USER }}" --admin-password "${{ secrets.VM_PWD }}" --location  eastus \
+    #       --image "Canonical:UbuntuServer:18.04-LTS:latest"   
