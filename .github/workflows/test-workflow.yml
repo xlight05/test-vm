@@ -34,6 +34,7 @@ jobs:
         inlineScript: |
           foo=`az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv`
           echo "::set-output name=res-group::${foo}"
+          echo $foo
     - name: Print again
       run: |
         echo "${{ steps.ohh.outputs.res-group }}"
