@@ -48,7 +48,7 @@ jobs:
     #       az image delete --name mi_${{ steps.write.outputs.old-image-id }} --resource-group ${{ secrets.CLUSTER_RESOURCE_GROUP }}
     - name: Create local changes
       run: |
-        echo ${{ steps.imageBuilder.outputs.custom-image-uri }} | rev | cut -d/ -f1 | rev > image.txt
+        echo ${{ steps.imageBuilder.outputs.custom-image-uri }} | rev | cut -d/ -f1 | rev | sed -e "s/^"mi_"//" > image.txt
     - name: Commit files
       run: |
         git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
