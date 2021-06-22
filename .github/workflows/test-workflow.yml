@@ -32,7 +32,6 @@ jobs:
         azcliversion: 2.25.0
         inlineScript: |
           az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv
-          az group delete --name $(az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv) -y
     # - name: Create local changes
     #   run: |
     #     echo "mi_12345" | sed -e "s/^"mi_"//" > image.txt
