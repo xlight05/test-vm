@@ -17,7 +17,7 @@ jobs:
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
     - name: Create local changes
       run: |
-        echo ${$(echo /subscriptions/5295c144-c89d-4ee8-bf55-8f81cf250fda/resourceGroups/providers/Microsoft.Compute/images/mi_1624376415297)##*/}|sed -e "s/^"mi_"//"
+        echo `echo ${$(echo /subscriptions/5295c144-c89d-4ee8-bf55-8f81cf250fda/resourceGroups/providers/Microsoft.Compute/images/mi_1624376415297)##*/}|sed -e "s/^"mi_"//"`
     - name: Write values to outputs
       id: write
       run: |
