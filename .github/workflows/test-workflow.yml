@@ -44,7 +44,7 @@ jobs:
       uses: ad-m/github-push-action@master
       with:
         github_token: ${{ secrets.BALLERINA_BOT_TOKEN }}
-        branch: update-vm-image
+        branch: update-vm-image-${{ GITHUB.RUN_NUMBER }}
     # - name: Test AZ CLI Command
     #   uses: azure/CLI@v1
     #   with:
