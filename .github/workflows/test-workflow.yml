@@ -1,60 +1,61 @@
-name: test-workflow
+name: create_base_image
 
 on:
   workflow_dispatch:
-
+  repository_dispatch:
+    types: [ create_base_image ]
 jobs:
   build:
     runs-on: ubuntu-latest
     env:
-      TEST_NAME: "h1-h1-passthrough"
-      TEST_ROOT: "tests"
+      TEST_NAME: "h1_h1_passthrough"
     steps:
     - name: Checkout
       uses: actions/checkout@v2
       with:
         persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
         fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
-    - name: Login via Az module
-      uses: azure/login@v1
-      with:
-        creds: ${{secrets.AZURE_CREDENTIALS}}
     - name: Write values to outputs
       id: write
       run: |
         echo "::set-output name=old-image-id::$(cat image.txt)"
-    - name: Print
-      run: |
-        echo "${{ steps.write.outputs.old-image-id }}"
-    - name: Cleaning up existing VM Image
-      id: ohh
-      uses: azure/CLI@v1
+    - name: Login via Az module
+      uses: azure/login@v1
       with:
-        azcliversion: 2.25.0
-        inlineScript: |
-          foo=`az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv`
-          echo "::set-output name=res-group::${foo}"
-          echo $foo
-    - name: Print again
-      run: |
-        echo "${{ steps.ohh.outputs.res-group }}"
-    # - name: Create local changes
-    #   run: |
-    #     echo "mi_12345" | sed -e "s/^"mi_"//" > image.txt
-    # - name: Commit files
-    #   run: |
-    #     git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    #     git config --local user.name "github-actions[bot]"
-    #     git commit -m "Add changes" -a
-    # - name: Push changes
-    #   uses: ad-m/github-push-action@master
-    #   with:
-    #     github_token: ${{ secrets.BALLERINA_BOT_TOKEN }}
-    #     branch: update-vm-image-${{ GITHUB.RUN_NUMBER }}
-    # - name: Test AZ CLI Command
+        creds: ${{secrets.AZURE_CREDENTIALS}}
+    - name: Build and Distribute Custom VM Image
+      id: imageBuilder
+      uses: azure/build-vm-image@v0
+      with:
+        resource-group-name: '${{ secrets.CLUSTER_RESOURCE_GROUP }}'
+        location: 'eastus'
+        managed-identity: 'bal-perf-identity'
+        source-os-type: 'linux'
+        source-image-type: 'PlatformImage'
+        source-image: Canonical:UbuntuServer:18.04-LTS:latest
+        dist-image-tags: 'number:${{ GITHUB.RUN_NUMBER }}'
+        customizer-source: ${{ GITHUB.WORKSPACE }}/base-image
+        customizer-script: |
+          sudo cp -r /tmp/base-image/ /
+          sh /base-image/init.sh
+    # - name: Cleaning up existing VM Image
     #   uses: azure/CLI@v1
     #   with:
     #     azcliversion: 2.0.72
     #     inlineScript: |
-    #       az vm create --resource-group "${{ secrets.CLUSTER_RESOURCE_GROUP }}"  --name "${{ steps.write.outputs.vm-name }}"  --admin-username "${{ secrets.VM_USER }}" --admin-password "${{ secrets.VM_PWD }}" --location  eastus \
-    #       --image "Canonical:UbuntuServer:18.04-LTS:latest"   
+    #       az group delete --name $(az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv) -y
+    #       az image builder delete --name imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} --resource-group ${{ secrets.CLUSTER_RESOURCE_GROUP }}
+    #       az image delete --name mi_${{ steps.write.outputs.old-image-id }} --resource-group ${{ secrets.CLUSTER_RESOURCE_GROUP }}
+    - name: Create local changes
+      run: |
+        echo ${$(echo ${{ steps.imageBuilder.outputs.custom-image-uri }})##*/} | sed -e "s/^"mi_"//" > image.txt
+    - name: Commit files
+      run: |
+        git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+        git config --local user.name "github-actions[bot]"
+        git commit -m "Add changes" -a
+    - name: Push changes
+      uses: ad-m/github-push-action@master
+      with:
+        github_token: ${{ secrets.BALLERINA_BOT_TOKEN }}
+        branch: update-vm-image-${{ GITHUB.RUN_NUMBER }}
