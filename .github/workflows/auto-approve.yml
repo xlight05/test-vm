@@ -8,6 +8,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: hmarr/auto-approve-action@v2
-      if: github.actor == 'dependabot[bot]'
+      if: github.actor == 'xlight05'
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
