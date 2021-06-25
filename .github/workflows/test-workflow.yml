@@ -18,10 +18,10 @@ jobs:
     #   id: write
     #   run: |
     #     echo "::set-output name=old-image-id::$(cat image.txt)"
-    # - name: Login via Az module
-    #   uses: azure/login@v1
-    #   with:
-    #     creds: ${{secrets.AZURE_CREDENTIALS}}
+    - name: Login via Az module
+      uses: azure/login@v1
+      with:
+        creds: ${{secrets.AZURE_CREDENTIALS}}
     # - name: Build and Distribute Custom VM Image
     #   id: imageBuilder
     #   uses: azure/build-vm-image@v0
@@ -37,12 +37,12 @@ jobs:
     #     customizer-script: |
     #       sudo cp -r /tmp/base-image/ /
     #       sh /base-image/init.sh
-    # - name: Cleaning up existing VM Image
-    #   uses: azure/CLI@v1
-    #   with:
-    #     azcliversion: 2.25.0
-    #     inlineScript: |
-    #       az group list
+    - name: Cleaning up existing VM Image
+      uses: azure/CLI@v1
+      with:
+        azcliversion: 2.25.0
+        inlineScript: |
+          az group list
 
 
 
