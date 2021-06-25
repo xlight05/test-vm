@@ -11,3 +11,9 @@ jobs:
       if: github.actor == 'xlight05'
       with:
         github-token: "${{ secrets.GITHUB_TOKEN }}"
+    - name: Merge Pull Request
+      uses: juliangruber/merge-pull-request-action@v1
+      with:
+        github-token: ${{ secrets.GITHUB_TOKEN }}
+        number: 1
+        method: squash
