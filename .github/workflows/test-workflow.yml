@@ -2,7 +2,7 @@ name: test-workflow
 
 on:
   workflow_dispatch:
-    types: [ test-workflow ]
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -11,41 +11,13 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-      with:
-        persist-credentials: false # otherwise, the token used is the GITHUB_TOKEN, instead of your personal token
-        fetch-depth: 0 # otherwise, you will failed to push refs to dest repo
-    # - name: Write values to outputs
-    #   id: write
-    #   run: |
-    #     echo "::set-output name=old-image-id::$(cat image.txt)"
     - name: Login via Az module
       uses: azure/login@v1
       with:
         creds: ${{secrets.AZURE_CREDENTIALS}}
-    # - name: Build and Distribute Custom VM Image
-    #   id: imageBuilder
-    #   uses: azure/build-vm-image@v0
-    #   with:
-    #     resource-group-name: '${{ secrets.CLUSTER_RESOURCE_GROUP }}'
-    #     location: 'eastus'
-    #     managed-identity: 'bal-perf-identity'
-    #     source-os-type: 'linux'
-    #     source-image-type: 'PlatformImage'
-    #     source-image: Canonical:UbuntuServer:18.04-LTS:latest
-    #     dist-image-tags: 'number:${{ GITHUB.RUN_NUMBER }}'
-    #     customizer-source: ${{ GITHUB.WORKSPACE }}/base-image
-    #     customizer-script: |
-    #       sudo cp -r /tmp/base-image/ /
-    #       sh /base-image/init.sh
     - name: Cleaning up existing VM Image
       uses: azure/CLI@v1
       with:
         azcliversion: 2.25.0
         inlineScript: |
           az group list
-
-
-
-# az group delete --name $(az group list --tag imageTemplateName=imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} -otable --query "[].name" -otsv) -y
-# az image builder delete --name imagebuilderTemplate_${{ steps.write.outputs.old-image-id }} --resource-group ${{ secrets.CLUSTER_RESOURCE_GROUP }}
-# az image delete --name mi_${{ steps.write.outputs.old-image-id }} --resource-group ${{ secrets.CLUSTER_RESOURCE_GROUP }}
