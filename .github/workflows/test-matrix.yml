@@ -1,0 +1,42 @@
+name: test_matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      testConfig:
+        description: >
+          Test config json. Example
+          {
+            repo-url: "https://github.com/ballerina-platform/module-ballerina-http",
+            tests:["h1_h1_passthrough", "hello world"]
+          }
+        required: true
+jobs:
+  setup:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      # here we create the json, we need the "id:" so we can use it in "outputs" bellow
+      - id: set-matrix
+        run: echo "::set-output name=matrix::${{ github.event.inputs.testConfig }}"
+
+    # here, we save the result of this 1st phase to the "outputs"
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+
+  # phase 2
+  run_test:
+    needs: setup
+
+    runs-on: ubuntu-latest
+    strategy:
+      # ↓ the real magic happens here - create dynamic matrix from the json
+      matrix:
+        count: ${{ fromJson(needs.setup.outputs.matrix).tests }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Copy artifacts
+        run: |
+          echo ${{ matrix.count }}
