@@ -3,40 +3,70 @@ name: test_matrix
 on:
   workflow_dispatch:
     inputs:
-      testConfig:
+      repo-url:
         description: >
-          Test config json. Example
-          {
-            repo-url: "https://github.com/ballerina-platform/module-ballerina-http",
-            tests:["h1_h1_passthrough", "hello world"]
-          }
+          Url of the repo containing the tests.
+          Example- https://github.com/ballerina-platform/module-ballerina-http
         required: true
+      tests:
+        description: >
+          Array of test names
+          Example-["hello world","h1_h1_passthrough"]
+        required: false
+      zipURL:
+        description: 'Ballerina Zip Distribution URL'
+        required: false
 jobs:
   setup:
     runs-on: ubuntu-latest
-
     steps:
       - uses: actions/checkout@v2
-      # here we create the json, we need the "id:" so we can use it in "outputs" bellow
-      - id: set-matrix
-        run: echo "::set-output name=matrix::${{ github.event.inputs.testConfig }}"
+      - id: write
+        run: |
+          testsInput='${{ github.event.inputs.tests }}'
+          if [[ -z $testsInput ]]; then
+            git clone ${{ github.event.inputs.repo-url }}
+            repoUrl=${{ github.event.inputs.repo-url }}
+            repoName=${repoUrl##*https://github.com/ballerina-platform/}
+            if [[ -z $repoName ]]; then
+              echo "Github repo should be in `ballerina-platform` org"
+              exit 1
+            fi
+            echo $repoName
+            cd $repoName
+            tests=$(ls -d */ | cut -f1 -d'/' | jq -R -s -c 'split("\n")[:-1]')
+            echo "::set-output name=test::${tests}"
+          else
+            tests=$(echo $testsInput | jq '.')
+            if [[ -z $tests ]]; then
+              echo "Invalid json array input for tests"
+              exit 1
+            fi
 
-    # here, we save the result of this 1st phase to the "outputs"
+            if [[ $tests == "[]" ]]; then
+              echo "Empty test case array"
+              exit 1
+            fi
+            tests=${tests//$'\n'/}
+            echo "::set-output name=test::${tests}"
+            # echo ${tests}
+          fi
+      - id: try
+        run: |
+          echo ${{ steps.write.outputs.test }}
     outputs:
-      matrix: ${{ steps.set-matrix.outputs.matrix }}
+      matrix: ${{ steps.write.outputs.test }}
 
-  # phase 2
   run_test:
     needs: setup
-
     runs-on: ubuntu-latest
     strategy:
-      # ↓ the real magic happens here - create dynamic matrix from the json
       matrix:
-        count: ${{ fromJson(needs.setup.outputs.matrix).tests }}
+        count: ${{ fromJson(needs.setup.outputs.matrix) }}
 
     steps:
       - uses: actions/checkout@v2
-      - name: Copy artifacts
+      - name: Test
         run: |
           echo ${{ matrix.count }}
+          echo ${{ github.event.inputs.tests }}
